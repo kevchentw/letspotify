@@ -1,0 +1,29 @@
+{
+  "name": "LetSpotify",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "Lesten music with your friend without app and premium account",
+  "homepage_url": "",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "default_locale": "en",
+  "permissions": [
+    "cookies",
+    "notifications",
+    "*://spotify.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://open.spotify.com/*"
+      ],
+      "js": [
+        "src/inject/inject.js",
+        "js/clipboard.min.js"
+      ]
+    }
+  ]
+}
