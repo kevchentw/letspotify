@@ -28,11 +28,12 @@ function randomID() {
 var deviceID = randomID();
 var connectionID;
 var activeDevices;
-var local_current_uri;
 var current_uri;
 var current_track_index;
 var ws_server_url = "wss://letspotify.nctu.me";
 
+var feature_identifier = "harmony";
+var feature_version = "2.20.1-b224958";
 
 var send_spotify_msg = function(data){};
 
@@ -70,6 +71,9 @@ function getActiveDevices() {
                 var device = devices[i];
                 if (device.is_active) {
                     activeDevices = device.id;
+                    var v = device.version.split(":")
+                    feature_identifier = v[0];
+                    feature_version = v[1];
                     break;
                 }
             }
@@ -162,15 +166,14 @@ function pause() {
 
 
 function play(uri, url, track_index) {
-
     var data = {
     	"context": {
     		"uri": uri,
     		"url": url
     	},
     	"play_origin": {
-    		"feature_identifier": "harmony",
-    		"feature_version": "2.20.1-b224958"
+    		"feature_identifier": feature_identifier,
+    		"feature_version": feature_version
     	},
     	"options": {
     		"skip_to": {
@@ -206,6 +209,12 @@ setInterval(function() {
     }));
 
 }, 30000);
+
+setInterval(function() {
+    getActiveDevices();
+}, 10000);
+
+
 
 var ws_state = {
     "pub": {
@@ -314,8 +323,7 @@ setTimeout(
 
                 ws_sub.onmessage = function(event) {
                     var data = JSON.parse(event.data);
-
-                    if(data.uri && data.url && (data.uri != current_uri || data.track_index != current_track_index)){
+                    if(data.uri && (data.uri != current_uri || data.track_index != current_track_index)){
                         play(data.uri, data.url, data.track_index);
                     }
                 }
