@@ -28,12 +28,12 @@ function randomID() {
 var deviceID = randomID();
 var connectionID;
 var activeDevices;
-var local_current_uri;
 var current_uri;
-var current_url;
 var current_track_index;
-var ws_server_url = "ws://letspotify.nctu.me";
+var ws_server_url = "wss://letspotify.nctu.me";
 
+var feature_identifier = "harmony";
+var feature_version = "2.20.1-b224958";
 
 var send_spotify_msg = function(data){};
 
@@ -50,7 +50,6 @@ ws.onmessage = function(e) {
     if(data.type=='message'){
         try {
             current_uri = data.payloads[0].player_state.context_uri;
-            current_url = data.payloads[0].player_state.context_url;
             current_track_index = data.payloads[0].player_state.index.track;
         }
         catch(err) {
@@ -72,6 +71,9 @@ function getActiveDevices() {
                 var device = devices[i];
                 if (device.is_active) {
                     activeDevices = device.id;
+                    var v = device.version.split(":")
+                    feature_identifier = v[0];
+                    feature_version = v[1];
                     break;
                 }
             }
@@ -164,15 +166,14 @@ function pause() {
 
 
 function play(uri, url, track_index) {
-
     var data = {
     	"context": {
     		"uri": uri,
     		"url": url
     	},
     	"play_origin": {
-    		"feature_identifier": "harmony",
-    		"feature_version": "2.20.1-b224958"
+    		"feature_identifier": feature_identifier,
+    		"feature_version": feature_version
     	},
     	"options": {
     		"skip_to": {
@@ -192,7 +193,6 @@ function play(uri, url, track_index) {
     request.setRequestHeader('Authorization', 'Bearer ' + getCookie('wp_access_token'));
     request.onreadystatechange = function() {
         if (request.readyState === 4) {
-            console.log(request.response);
         }
     }
     request.send(JSON.stringify(data));
@@ -209,6 +209,12 @@ setInterval(function() {
     }));
 
 }, 30000);
+
+setInterval(function() {
+    getActiveDevices();
+}, 10000);
+
+
 
 var ws_state = {
     "pub": {
@@ -269,10 +275,10 @@ setTimeout(
                     copy_svg.setAttribute('visibility', 'visible');
                     send_spotify_msg = function(data){
                         if(data.type=='message'){
-                            if(data.payloads[0].player_state.context_uri && data.payloads[0].player_state.context_url){
+                            if(data.payloads[0].player_state.context_uri){
                                 data = {
                                     'uri': data.payloads[0].player_state.context_uri,
-                                    'url':  data.payloads[0].player_state.context_url,
+                                    'url': "context://" + data.payloads[0].player_state.context_uri,
                                     'track_index': data.payloads[0].player_state.index.track
                                 }
                                 ws_pub.send(JSON.stringify(data));
@@ -317,8 +323,7 @@ setTimeout(
 
                 ws_sub.onmessage = function(event) {
                     var data = JSON.parse(event.data);
-
-                    if(data.uri && data.url && (data.uri != current_uri || data.track_index != current_track_index)){
+                    if(data.uri && (data.uri != current_uri || data.track_index != current_track_index)){
                         play(data.uri, data.url, data.track_index);
                     }
                 }
