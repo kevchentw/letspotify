@@ -30,7 +30,6 @@ var connectionID;
 var activeDevices;
 var local_current_uri;
 var current_uri;
-var current_url;
 var current_track_index;
 var ws_server_url = "wss://letspotify.nctu.me";
 
@@ -50,7 +49,6 @@ ws.onmessage = function(e) {
     if(data.type=='message'){
         try {
             current_uri = data.payloads[0].player_state.context_uri;
-            current_url = data.payloads[0].player_state.context_url;
             current_track_index = data.payloads[0].player_state.index.track;
         }
         catch(err) {
@@ -192,7 +190,6 @@ function play(uri, url, track_index) {
     request.setRequestHeader('Authorization', 'Bearer ' + getCookie('wp_access_token'));
     request.onreadystatechange = function() {
         if (request.readyState === 4) {
-            console.log(request.response);
         }
     }
     request.send(JSON.stringify(data));
@@ -269,10 +266,10 @@ setTimeout(
                     copy_svg.setAttribute('visibility', 'visible');
                     send_spotify_msg = function(data){
                         if(data.type=='message'){
-                            if(data.payloads[0].player_state.context_uri && data.payloads[0].player_state.context_url){
+                            if(data.payloads[0].player_state.context_uri){
                                 data = {
                                     'uri': data.payloads[0].player_state.context_uri,
-                                    'url':  data.payloads[0].player_state.context_url,
+                                    'url': "context://" + data.payloads[0].player_state.context_uri,
                                     'track_index': data.payloads[0].player_state.index.track
                                 }
                                 ws_pub.send(JSON.stringify(data));
