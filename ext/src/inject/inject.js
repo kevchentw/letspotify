@@ -32,7 +32,7 @@ var local_current_uri;
 var current_uri;
 var current_url;
 var current_track_index;
-var ws_server_url = "ws://letspotify.nctu.me";
+var ws_server_url = "wss://letspotify.nctu.me";
 
 
 var send_spotify_msg = function(data){};
